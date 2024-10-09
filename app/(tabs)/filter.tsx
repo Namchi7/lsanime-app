@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dimensions, FlatList, ScrollView } from "react-native";
+import { Dimensions, FlatList } from "react-native";
 import { Href, Link, useRouter } from "expo-router";
 import {
   StyledImage,
