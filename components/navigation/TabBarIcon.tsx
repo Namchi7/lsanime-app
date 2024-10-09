@@ -1,9 +1,35 @@
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+import { StyledText, StyledView, StyledImage } from "@/components/NativeStyled";
 
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { type IconProps } from '@expo/vector-icons/build/createIconSet';
-import { type ComponentProps } from 'react';
-
-export function TabBarIcon({ style, ...rest }: IconProps<ComponentProps<typeof Ionicons>['name']>) {
-  return <Ionicons size={28} style={[{ marginBottom: -3 }, style]} {...rest} />;
+export interface TabBarIconType {
+  icon: any;
+  color: string;
+  name: string;
+  focused: boolean;
 }
+
+const TabBarIcon: React.FC<TabBarIconType> = ({
+  icon,
+  color,
+  name,
+  focused,
+}) => {
+  return (
+    <StyledView className="justify-center items-center gap-2">
+      <StyledImage
+        source={icon}
+        resizeMode="contain"
+        tintColor={color}
+        className="w-6 h-6"
+      />
+
+      <StyledText
+        className={`text-xs ${focused ? "font-semibold" : "font-regular"} `}
+        style={{ color: color }}
+      >
+        {name}
+      </StyledText>
+    </StyledView>
+  );
+};
+
+export default TabBarIcon;

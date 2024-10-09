@@ -1,70 +1,106 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { FlatList, RefreshControl } from "react-native";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyledView, StyledText } from "../../components/NativeStyled";
+import HorizontalList from "@/components/HorizontalList";
+import { fetchHomeData } from "@/redux/reducers/homePageSlice";
+import { HomeListsItemType, HomePageDataType } from "@/constants/types";
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+const Home = () => {
+  const dispatch = useAppDispatch();
+  const data: HomePageDataType | null = useAppSelector(
+    (state) => state?.homeTab?.data
   );
-}
+  const isLoading: boolean = useAppSelector(
+    (state) => state?.homeTab?.isLoading
+  );
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    dispatch(fetchHomeData());
+    setRefreshing(false);
+  };
+
+  const lists: HomeListsItemType[] = [
+    { key: "thisSeason", title: "This Season" },
+    { key: "upcoming", title: "Upcoming Season" },
+    { key: "top", title: "Top Animes" },
+  ];
+
+  // const data = [
+  //   {
+  //     id: 1,
+  //     title: "Title 1",
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Title 2",
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Title 3",
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Title 4",
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Title 5",
+  //   },
+  //   {
+  //     id: 6,
+  //     title: "Title 6",
+  //   },
+  //   {
+  //     id: 7,
+  //     title: "Title 7",
+  //   },
+  //   {
+  //     id: 8,
+  //     title: "Title 8",
+  //   },
+  //   {
+  //     id: 9,
+  //     title: "Title 9",
+  //   },
+  // ];
+
+  useEffect(() => {
+    dispatch(fetchHomeData());
+  }, []);
+
+  return (
+    <StyledView className="w-full h-full justify-start items-start space-y-4">
+      {isLoading && (
+        <StyledView className="w-full h-60 justify-center items-center">
+          <StyledText className="text-base font-semibold">
+            Loading...
+          </StyledText>
+        </StyledView>
+      )}
+
+      {data && (
+        <FlatList
+          data={lists}
+          keyExtractor={(item) => item.key.toString()}
+          renderItem={({ item, index }) => (
+            <StyledView
+              className={`w-full mb-4 ${index > 0 ? "mt-2" : "mt-4"}`}
+            >
+              <HorizontalList data={data[item.key].data} listItem={item} />
+            </StyledView>
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
+      )}
+    </StyledView>
+  );
+};
+
+export default Home;
