@@ -53,28 +53,39 @@ const Search: React.FC = () => {
           data={data?.data ?? []}
           keyExtractor={(item) => item?.mal_id.toString()}
           renderItem={({ item, index }) => (
-            <StyledView
-              className={`w-[${posterWidth}] flex-1 space-y-2 mb-4 ml-4 ${
-                index % 2 === 0 ? "mr-0" : "mr-4"
-              }`}
-            >
-              <StyledTouchableOpacity
-                onPress={() => router.push(`/anime/${item.mal_id}` as Href)}
-                className="aspect-[2/3] w-full bg-gray-300 rounded-md shadow-lg overflow-hidden"
+            <>
+              <StyledView
+                className={`w-[${posterWidth}] flex-1 space-y-2 mb-4 ml-4 ${
+                  index % 2 === 0 ? "mr-0" : "mr-4"
+                }`}
               >
-                <StyledImage
-                  source={{ uri: item.images.jpg.large_image_url }}
-                  resizeMode="cover"
-                  className="w-full h-full"
-                />
-              </StyledTouchableOpacity>
+                <StyledTouchableOpacity
+                  onPress={() => router.push(`/anime/${item.mal_id}` as Href)}
+                  className="aspect-[2/3] w-full bg-gray-300 rounded-md shadow-lg overflow-hidden"
+                >
+                  <StyledImage
+                    source={{ uri: item.images.jpg.large_image_url }}
+                    resizeMode="cover"
+                    className="w-full h-full"
+                  />
+                </StyledTouchableOpacity>
 
-              <Link href={`/anime/${item.mal_id}` as Href}>
-                <StyledText numberOfLines={2} className="text-sm font-medium">
-                  {item?.title}
-                </StyledText>
-              </Link>
-            </StyledView>
+                <Link href={`/anime/${item.mal_id}` as Href}>
+                  <StyledText numberOfLines={2} className="text-sm font-medium">
+                    {item?.title}
+                  </StyledText>
+                </Link>
+              </StyledView>
+              {data &&
+                data?.data?.length % 2 === 1 &&
+                index === data?.data.length - 1 && (
+                  <StyledView
+                    className={`max-w-[${posterWidth}] flex-1 space-y-2 mb-4 ml-4 ${
+                      index % 2 === 0 ? "mr-0" : "mr-4"
+                    }`}
+                  ></StyledView>
+                )}
+            </>
           )}
           ListHeaderComponent={
             <StyledView className="w-full px-4">

@@ -181,6 +181,9 @@ const initialFilters: filtersType = {
 
 const Filter: React.FC = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const posterWidth: string = `${Dimensions.get("window").width / 2 - 16}px`;
 
   const [filters, setFilters] = useState<filtersType>(initialFilters);
 
@@ -194,8 +197,18 @@ const Filter: React.FC = () => {
   const [showFilters, setShowFilters] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
 
+  const changePage = (num: number) => {
+    setFilters((prev) => {
+      return { ...prev, page: num };
+    });
+    dispatch(fetchFilteredData({ ...filters, page: num }));
+  };
+
   const getFilteredData = () => {
-    dispatch(fetchFilteredData(filters));
+    setFilters((prev) => {
+      return { ...prev, page: 1 };
+    });
+    dispatch(fetchFilteredData({ ...filters, page: 1 }));
   };
 
   useEffect(() => {
@@ -206,83 +219,120 @@ const Filter: React.FC = () => {
     }
   }, [data]);
 
-  useEffect(() => {
-    setFilters((prev) => {
-      return { ...prev, page: page };
-    });
-    dispatch(fetchFilteredData({ ...filters, page: page }));
-  }, [page]);
-
   return (
     <>
-      <ScrollView>
-        <StyledView className="w-full px-4 my-4">
-          <StyledView className="w-full flex-row justify-between items-center">
-            <StyledText className="text-2xl font-bold">Filter</StyledText>
-            <StyledTouchableOpacity
-              onPress={() => setShowFilters((prev) => !prev)}
-              className={`aspect-square w-7 justify-center items-center border border-gray-300 rounded-md ${
-                showFilters ? "bg-button/70" : "bg-white"
+      <FlatList
+        data={data?.data}
+        keyExtractor={(item) => item?.mal_id.toString()}
+        renderItem={({ item, index }) => (
+          <>
+            <StyledView
+              className={`max-w-[${posterWidth}] flex-1 space-y-2 mb-4 ml-4 ${
+                index % 2 === 0 ? "mr-0" : "mr-4"
               }`}
             >
-              <StyledImage
-                source={icons.filter}
-                resizeMode="contain"
-                tintColor={showFilters ? "black" : "black"}
-                className="w-4 h-4"
-              />
-            </StyledTouchableOpacity>
-          </StyledView>
-
-          <StyledView
-            className={`w-full bg-white rounded-lg p-4 mt-2 ${
-              showFilters ? "flex" : "hidden"
-            }`}
-          >
-            {filterData.map((filter, i: number) => (
-              <StyledView className="w-full justify-start items-start" key={i}>
-                <StyledText className="text-base font-medium mb-1">
-                  {filter.title}
-                </StyledText>
-                <DropdownSelect
-                  data={filter}
-                  selected={filters}
-                  setSelected={setFilters}
+              <StyledTouchableOpacity
+                onPress={() => router.push(`/anime/${item.mal_id}` as Href)}
+                className="aspect-[2/3] w-full bg-gray-300 rounded-md shadow-lg overflow-hidden"
+              >
+                <StyledImage
+                  source={{ uri: item.images.jpg.large_image_url }}
+                  resizeMode="cover"
+                  className="w-full h-full"
                 />
-              </StyledView>
-            ))}
+              </StyledTouchableOpacity>
 
-            <ScrollableList filters={filters} setFilters={setFilters} />
+              <Link href={`/anime/${item.mal_id}` as Href}>
+                <StyledText numberOfLines={2} className="text-sm font-medium">
+                  {item?.title}
+                </StyledText>
+              </Link>
+            </StyledView>
 
-            <Button
-              title="Filter"
-              handlePress={getFilteredData}
-              containerStyles="mt-2"
-              textStyles=""
-              isLoading={false}
-            />
+            {data &&
+              data?.data?.length % 2 === 1 &&
+              index === data?.data.length - 1 && (
+                <StyledView
+                  className={`max-w-[${posterWidth}] flex-1 space-y-2 mb-4 ml-4 ${
+                    index % 2 === 0 ? "mr-0" : "mr-4"
+                  }`}
+                ></StyledView>
+              )}
+          </>
+        )}
+        ListHeaderComponent={
+          <StyledView className="w-full px-4 my-4">
+            <StyledView className="w-full flex-row justify-between items-center">
+              <StyledText className="text-2xl font-bold">Filter</StyledText>
+              <StyledTouchableOpacity
+                onPress={() => setShowFilters((prev) => !prev)}
+                className={`aspect-square w-7 justify-center items-center border border-gray-300 rounded-md ${
+                  showFilters ? "bg-button/70" : "bg-white"
+                }`}
+              >
+                <StyledImage
+                  source={icons.filter}
+                  resizeMode="contain"
+                  tintColor={showFilters ? "black" : "black"}
+                  className="w-4 h-4"
+                />
+              </StyledTouchableOpacity>
+            </StyledView>
+
+            <StyledView
+              className={`w-full bg-white rounded-lg p-4 mt-2 ${
+                showFilters ? "flex" : "hidden"
+              }`}
+            >
+              {filterData.map((filter, i: number) => (
+                <StyledView
+                  className="w-full justify-start items-start"
+                  key={i}
+                >
+                  <StyledText className="text-base font-medium mb-1">
+                    {filter.title}
+                  </StyledText>
+                  <DropdownSelect
+                    data={filter}
+                    selected={filters}
+                    setSelected={setFilters}
+                  />
+                </StyledView>
+              ))}
+
+              <ScrollableList filters={filters} setFilters={setFilters} />
+
+              <Button
+                title="Filter"
+                handlePress={getFilteredData}
+                containerStyles="mt-2"
+                textStyles=""
+                isLoading={false}
+              />
+            </StyledView>
           </StyledView>
-        </StyledView>
-
-        {data && <FilteredDataList data={data} />}
-
-        <StyledView className="w-full px-4">
-          {data && (
+        }
+        ListFooterComponent={
+          data && (
             <Pagination
               page={filters.page}
-              setPage={setPage}
+              setPage={changePage as typeof setPage}
               lastPage={data?.pagination.last_visible_page}
             />
-          )}
-          {isLoading && (
-            <StyledView className="w-full h-60 justify-center items-center">
-              <StyledText className="text-base font-semibold">
-                Loading...
-              </StyledText>
-            </StyledView>
-          )}
-        </StyledView>
-      </ScrollView>
+          )
+        }
+        numColumns={2}
+      />
+
+      <StyledView className="w-full px-4">
+        {/* {isLoading && (
+          <StyledView className="w-full h-60 justify-center items-center">
+            <StyledText className="text-base font-semibold">
+              Loading...
+            </StyledText>
+          </StyledView>
+        )} */}
+      </StyledView>
     </>
   );
 };
